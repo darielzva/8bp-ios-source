@@ -1,0 +1,52 @@
+name: Build DarielModz8BP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools (ldid, gmake)
+        run: brew install ldid make
+
+      - name: Install Theos + iOS SDKs
+        run: |
+          git clone --recursive --depth=1 https://github.com/theos/theos.git "$HOME/theos"
+          git clone --depth=1 https://github.com/theos/sdks.git "$HOME/theos-sdks"
+          mkdir -p "$HOME/theos/sdks"
+          cp -R "$HOME"/theos-sdks/*.sdk "$HOME/theos/sdks/"
+          ls "$HOME/theos/sdks"
+          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+
+      - name: Build tweak (dylib only)
+        run: |
+          gmake clean || true
+          gmake FINALPACKAGE=1 -j"$(sysctl -n hw.ncpu)"
+
+      - name: Collect dylib
+        run: |
+          DYLIB=$(find .theos/obj -maxdepth 2 -name '8Ball.dylib' | head -n 1)
+          if [ -z "$DYLIB" ]; then
+            echo "8Ball.dylib not found in .theos/obj. Contents:"
+            find .theos -name '*.dylib'
+            exit 1
+          fi
+          echo "Found: $DYLIB"
+          mkdir -p out
+          cp "$DYLIB" out/DarielModz8BP.dylib
+          lipo -info out/DarielModz8BP.dylib
+          otool -L out/DarielModz8BP.dylib
+          ls -lh out/DarielModz8BP.dylib
+
+      - name: Upload dylib
+        uses: actions/upload-artifact@v4
+        with:
+          name: DarielModz8BP
+          path: out/DarielModz8BP.dylib
