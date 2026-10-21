@@ -429,19 +429,20 @@ static void setupGestureAndShowImGui(void) {
             NSLog(@"[ESP-AI] ESP_Update exception: %@", e);
         }
 
-        // ── Menu window ── (width +50% vs original 340pt for longer debug lines)
+                // ── Menu window ──
         if (g_menuVisible) {
-            const CGFloat kESPMenuW = 340.f * 1.5f;
-            const CGFloat kESPMenuH = 380.f;
+            const CGFloat kESPMenuW = 600.f;
+            const CGFloat kESPMenuH = 340.f;
             CGFloat x = (view.bounds.size.width - kESPMenuW) / 2;
             CGFloat y = (view.bounds.size.height - kESPMenuH) / 2;
             ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(kESPMenuW, kESPMenuH), ImGuiCond_Always);
 
-            ImGui::Begin(ICON_FA_EYE " 8 Ball Pool Hack", &g_menuVisible,
-                        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+            ImGui::Begin("##8BP", nullptr,
+                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-            ESP_DrawMenu();
+            ESP_DrawMenu(&g_menuVisible);
 
             ImGui::End();
         }
